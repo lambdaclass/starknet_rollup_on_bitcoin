@@ -6,7 +6,6 @@ use std::{
 use lib::{Transaction, TransactionType};
 use once_cell::sync::Lazy;
 use sha2::{Digest, Sha256};
-use starknet_rs::testing::starknet_state::StarknetState;
 use tendermint_abci::Application;
 use tendermint_proto::abci;
 
@@ -19,7 +18,7 @@ use tracing::{debug, info};
 #[derive(Debug, Clone)]
 pub struct StarknetApp {
     hasher: Arc<Mutex<Sha256>>,
-    starknet_state: StarknetState,
+    // starknet_state: StarknetState,
 }
 
 // because we don't get a `&mut self` in the ABCI API, we opt to have a mod-level variable
@@ -51,7 +50,7 @@ impl Application for StarknetApp {
             last_block_height: HeightFile::read_or_create(),
 
             // using a fixed hash, see the commit() hook
-            last_block_app_hash: vec![].into(),
+            last_block_app_hash: vec![],
         }
     }
 
@@ -237,12 +236,12 @@ impl Application for StarknetApp {
 
         match app_hash {
             Ok(hash) => abci::ResponseCommit {
-                data: hash.into(),
+                data: hash,
                 retain_height: 0,
             },
             // error should be handled here
             _ => abci::ResponseCommit {
-                data: vec![].into(),
+                data: vec![],
                 retain_height: 0,
             },
         }
@@ -254,14 +253,14 @@ impl StarknetApp {
     pub fn new() -> Self {
         let new_state = Self {
             hasher: Arc::new(Mutex::new(Sha256::new())),
-            starknet_state: StarknetState::new(None),
+            //starknet_state: StarknetState::new(None),
         };
-        let height_file = HeightFile::read_or_create();
+        let _height_file = HeightFile::read_or_create();
 
-        info!(
-            "Starting with Starknet State: {:?}. Height file has value: {}",
-            new_state.starknet_state, height_file
-        );
+        //info!(
+        //    "Starting with Starknet State: {:?}. Height file has value: {}",
+        //    new_state.starknet_state, height_file
+        //);
         new_state
     }
 }
