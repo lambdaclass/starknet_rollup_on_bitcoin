@@ -12,3 +12,12 @@ Cargo.lock
 
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
+
+
+/bin/
+/rollkit-node/rollkit-node
+/rollkit-node-bitcoin/rollkit-node-bitcoin
+/target
+.DS_Store
+
+abci.height
