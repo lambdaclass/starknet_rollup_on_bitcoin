@@ -1,7 +1,6 @@
 # Barknet
 Soverign rollup based on Rollkit, Cairo VM for the application layer and Bitcoin as a DAL having native BRC-20 tokens using a one-way bridge
 
-
 ## How to run
 
 Note: This requires `bitcoin-cli` and `bitcoind` to be installed. See [the original guide](https://rollkit.dev/docs/tutorials/bitcoin/) for more information.
