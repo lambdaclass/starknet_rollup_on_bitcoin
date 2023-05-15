@@ -14,6 +14,16 @@ CONSENSUS=cometbft
 CONSENSUS_VERSION=0.34.27
 CONSENSUS_HOME=~/.cometbft/
 
+
+setup:
+	mix deps.get
+	mix deps.compile
+	mix setup
+
+run:
+	mix assets.build
+	iex -S mix phx.server
+
 # Build the client program and put it in bin/aleo
 cli:
 	mkdir -p bin && cargo build --release && cp target/release/cli bin/cli
@@ -119,4 +129,5 @@ localnet_reset:
 clippy:
 	cargo clippy --all-targets --all-features -- -D warning
 .PHONY: clippy
+
 

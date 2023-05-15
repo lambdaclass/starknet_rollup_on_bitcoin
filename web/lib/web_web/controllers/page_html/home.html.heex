@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+
+<body style="background-color: rgb(20,26,34);">
+    <div class="container ">
+        <img class="logo" src={~p"/images/logo.jpg"} alt="Barknet" >
+        <div class="content">
+            <input type="text" id="address" placeholder="Starknet address" />
+            <button id="bridgeButton" disabled>Bridge</button>
+        </div>
+        <div id="messageContainer" class="message"></div>
+    </div>
+
+
+    <script>
+        const addressInput = document.getElementById('address');
+        const bridgeButton = document.getElementById('bridgeButton');
+        const messageContainer = document.getElementById('messageContainer');
+
+        addressInput.addEventListener('input', function () {
+            bridgeButton.disabled = !this.value;
+        });
+
+        bridgeButton.addEventListener('click', function() {
+            messageContainer.innerText = "You pressed the button!";
+        });
+    </script>
+</body>
+</html>
