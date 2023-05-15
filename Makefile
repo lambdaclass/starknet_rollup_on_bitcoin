@@ -16,12 +16,14 @@ CONSENSUS_HOME=~/.cometbft/
 
 
 setup:
-	mix deps.get
-	mix deps.compile
+	cd web ;\
+	mix deps.get ;\
+	mix deps.compile ;\
 	mix setup
 
 run:
-	mix assets.build
+	cd web;\
+	mix assets.build ;\
 	iex -S mix phx.server
 
 # Build the client program and put it in bin/aleo
