@@ -27,6 +27,7 @@ defmodule BitcoinTracker do
             "tx" => tx
           }
 
+          #Insert into DB
           case Bridge.Tokens.create_token(token_params) do
             {:ok, _token} ->
               IO.puts("Token created successfully.")

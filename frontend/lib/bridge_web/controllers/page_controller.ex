@@ -7,9 +7,10 @@ defmodule BridgeWeb.PageController do
     render(conn, :home, layout: false)
   end
 
-  def your_action(conn, params) do
-    case Curvy.verify(params["sig"], params["msg"]), params["key"])) do
-      true -> redirect(conn, to: Routes.live_path(conn, BridgeWeb.TransactionLive,  msg: params["msg"])))
+  #POST action
+  def burn(conn, params) do
+    case Curvy.verify(params["sig"], params["msg"], params["key"]) do
+      true -> redirect(conn, to: Routes.live_path(conn, BridgeWeb.TransactionLive,  msg: params["msg"]))
       false -> conn
               |> put_status(:bad_request)
               |> json(%{error: "Signature could not be verified"})
