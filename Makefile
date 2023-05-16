@@ -1,4 +1,4 @@
-.PHONY: reset abci cli consensus_config consensus_install rollkit_celestia bitcoin celestia
+.PHONY: reset abci cli consensus_config consensus_install rollkit_celestia bitcoin celestia setup run db
 
 OS := $(shell uname | tr '[:upper:]' '[:lower:]')
 
@@ -14,17 +14,6 @@ CONSENSUS=cometbft
 CONSENSUS_VERSION=0.34.27
 CONSENSUS_HOME=~/.cometbft/
 
-
-setup:
-	cd web ;\
-	mix deps.get ;\
-	mix deps.compile ;\
-	mix setup
-
-run:
-	cd web;\
-	mix assets.build ;\
-	iex -S mix phx.server
 
 # Build the client program and put it in bin/aleo
 cli:
@@ -132,4 +121,17 @@ clippy:
 	cargo clippy --all-targets --all-features -- -D warning
 .PHONY: clippy
 
+# Frontend config:
 
+setup:
+	cd frontend ;\
+	mix deps.get ;\
+	mix deps.compile ;\
+	mix setup
+
+run:
+	cd frontend ;\
+	mix assets.build ;\
+	iex -S mix phx.server
+db:
+	docker compose up -d
