@@ -49,7 +49,8 @@ defmodule Bridge.MixProject do
       {:plug_cowboy, "~> 2.5"},
       {:httpoison, "~> 1.8"},
       {:ecto_sql, "~> 3.5"},
-      {:postgrex, ">= 0.0.0"}
+      {:postgrex, ">= 0.0.0"},
+      {:curvy, "~> 0.3"}
     ]
   end
 

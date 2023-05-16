@@ -8,6 +8,16 @@ defmodule BridgeWeb.TransactionLive do
     """
   end
 
+  def mount(%{"msg" => tx_id}, _session, socket) do
+    if connected?(socket) do
+      Phoenix.PubSub.subscribe(Bridge.PubSub, "transaction_status")
+      {:ok, _pid} = BitcoinTracker.start_link(self(), tx_id)
+    end
+
+    {:ok, assign(socket, :status, "Waiting for transaction status...")}
+  end
+
+  #TODO: This should be removed alongside the GET route
   def mount(%{"tx_id" => tx_id}, _session, socket) do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Bridge.PubSub, "transaction_status")
