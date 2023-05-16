@@ -5,25 +5,105 @@
     <div class="container ">
         <img class="logo" src={~p"/images/logo.jpg"} alt="Barknet" >
         <div class="content">
-            <input type="text" id="address" placeholder="Starknet address" />
-            <button id="bridgeButton" disabled>Bridge</button>
+            <input type="number" id="satoshis" placeholder="Amount of sats to burn" disabled style = "display: none;" />
+            <button id="burnButton" disabled style = "display: none;">Burn</button>
+        </div>
+        <div class="connect">
+            <button id="connectButton">Connect</button>
         </div>
         <div id="messageContainer" class="message"></div>
+        <div id="inscriptionsList" class="message"></div>
+        <div class="sign message">
+            <input type="text" id="signMessage" placeholder="Address to mint to" disabled style = "display: none;"/>
+            <button id="signButton" disabled style = "display: none;">Sign</button>
+        </div>
+
     </div>
 
 
+
+
+
     <script>
-        const addressInput = document.getElementById('address');
-        const bridgeButton = document.getElementById('bridgeButton');
+        const satoshisInput = document.getElementById('satoshis');
+        const burnButton = document.getElementById('burnButton');
         const messageContainer = document.getElementById('messageContainer');
-
-        addressInput.addEventListener('input', function () {
-            bridgeButton.disabled = !this.value;
+        const connectButton = document.getElementById('connectButton');
+        const inscriptionsList = document.getElementById('inscriptionsList');
+        const signButton = document.getElementById('signButton');
+        const messageInput = document.getElementById('signMessage');
+        //Make sure to change this, do it in a way safer manner!
+        const burnAddress = "tb1p98w87r8c2nnekmqdjxm6qhrazke4r6w4ah9ygta7d2n0xe6vl53s6fc2h3"
+        connectButton.addEventListener('click', async function() {
+            try {
+                let accounts = await window.unisat.requestAccounts();
+                console.log('connect success', accounts);
+            } catch (e) {
+                console.log('connect failed');
+            }
+            try {
+                let res = await window.unisat.getInscriptions(0,10);
+                inscriptionsList.innerText = JSON.stringify(res);
+            } catch (e) {
+                console.log('getInscriptions failed');
+            }
+            connectButton.disabled = true;
+            connectButton.style.display = "none";
+            satoshisInput.disabled = false;
+            satoshisInput.style.display = "block";
+            burnButton.style.display = "block";
         });
 
-        bridgeButton.addEventListener('click', function() {
-            messageContainer.innerText = "You pressed the button!";
+        satoshisInput.addEventListener('input', function () {
+            burnButton.disabled = !this.value;
         });
+        let txid;
+        burnButton.addEventListener('click', async function() {
+            try {
+                txid = await window.unisat.sendBitcoin("tb1p98w87r8c2nnekmqdjxm6qhrazke4r6w4ah9ygta7d2n0xe6vl53s6fc2h3", 1);
+                console.log(txid)
+                //make the sign message stuff appear on screen and turn off the burn button and satoshis input
+                burnButton.disabled = true;
+                burnButton.style.display = "none";
+                satoshisInput.disabled = true;
+                satoshisInput.style.display = "none";
+                messageInput.disabled = false;
+                messageInput.style.display = "block";
+                signButton.style.display = "block";
+            } catch (e) {
+                console.log(e);
+            }
+        });
+        let stark_address;
+        messageInput.addEventListener('input', function () {
+            signButton.disabled = false;
+            stark_address = this.value;
+        });
+
+        console.log(stark_address);
+        let signedMsg;
+        signButton.addEventListener('click', async function() {
+                try {
+                    let msg = txid + stark_address;
+                    let signedMsg = await window.unisat.signMessage(msg);
+                    console.log(signedMsg)
+                } catch (e) {
+                    console.log(e);
+                }
+            }
+        );
+
+        
+
+
+
+
+
+
+
+
+
+
     </script>
 </body>
 </html>
