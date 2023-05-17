@@ -23,7 +23,7 @@
 
 
 
-
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script>
         const satoshisInput = document.getElementById('satoshis');
         const burnButton = document.getElementById('burnButton');
@@ -34,9 +34,11 @@
         const messageInput = document.getElementById('signMessage');
         //Make sure to change this, do it in a way safer manner!
         const burnAddress = "tb1p98w87r8c2nnekmqdjxm6qhrazke4r6w4ah9ygta7d2n0xe6vl53s6fc2h3"
+        let userAddress;
         connectButton.addEventListener('click', async function() {
             try {
                 let accounts = await window.unisat.requestAccounts();
+                userAddress = accounts[0];
                 console.log('connect success', accounts);
             } catch (e) {
                 console.log('connect failed');
@@ -82,18 +84,39 @@
 
         console.log(stark_address);
         let signedMsg;
+        const instance = axios.create({
+                withCredentials: true,
+                    baseURL: 'http://localhost:4000',
+        })
         signButton.addEventListener('click', async function() {
                 try {
-                    let msg = txid + stark_address;
-                    let signedMsg = await window.unisat.signMessage(msg);
+                    let msg = txid;
+                    signedMsg = await window.unisat.signMessage(msg);
                     console.log(signedMsg)
                 } catch (e) {
                     console.log(e);
                 }
+                const parms = new URLSearchParams({
+                    sgn: signedMsg,
+                    msg: txid,
+                    key: userAddress,
+                }).toString();
+                instance.post('/?' + parms,{},{})
+                .then(function (response) {
+                    console.log(response);
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+
             }
         );
 
-        
+
+
+
+
+
 
 
 
