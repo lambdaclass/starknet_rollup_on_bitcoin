@@ -8,9 +8,10 @@ fn main() {
         hex::decode("20117f692257b2331233b5705ce9c682be8719ff1b2b64cbca290bd6faeb54423eac06a7e609328801750063036f7264010118746578742f706c61696e3b636861727365743d7574662d3800347b2270223a226272632d3230222c226f70223a226d696e74222c227469636b223a2250444159222c22616d74223a22353030227d68").unwrap()
         ,hex::decode("c1117f692257b2331233b5705ce9c682be8719ff1b2b64cbca290bd6faeb54423e").unwrap()
     ]);
-    let tx= InscriptionParser::parse(&src);    //serde_json::from_str(src).unwrap();
-    println!("{:?}", tx);
-}
+    let tx= InscriptionParser::parse(&src).unwrap();    //serde_json::from_str(src).unwrap();
+    println!("{:?}", String::from_utf8(tx.body.unwrap()));
+    println!("{:?}", String::from_utf8(tx.content_type.unwrap()));
+  }
 
 const PROTOCOL_ID: &[u8] = b"ord";
 
