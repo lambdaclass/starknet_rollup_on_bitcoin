@@ -7,7 +7,8 @@ defmodule BridgeWeb.PageController do
     render(conn, :home, layout: false)
   end
 
-  #POST action
+  # POST action
+  # "msg" should be the tx_id
   def burn(conn, params) do
     case Curvy.verify(params["sig"], params["msg"], params["key"]) do
       true -> redirect(conn, to: Routes.live_path(conn, BridgeWeb.TransactionLive,  msg: params["msg"]))
@@ -21,8 +22,8 @@ defmodule BridgeWeb.PageController do
   end
 
 
-  def call_ord_decoder(args) do
-    {port, _} = Port.open({:spawn_executable, "/path/to/rust_bin"}, [:binary, args: args, exit_status: true])
+  defp call_ord_decoder(args) do
+    {port, _} = Port.open({:spawn_executable, "/target/debug/ord-decoder"}, [:binary, args: args, exit_status: true])
 
     receive do
       {^port, {:exit_status, 0}} ->
@@ -32,7 +33,7 @@ defmodule BridgeWeb.PageController do
         {:error, "Ordinal decoder exited with status #{status}"}
 
       {^port, {:data, data}} ->
-        IO.puts("Ordinal decoder was succesful: #{data}")
+        IO.puts("Ordinal decoder was succesful and returned: #{data}")
     end
   end
 
