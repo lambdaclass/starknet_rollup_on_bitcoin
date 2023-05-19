@@ -130,6 +130,7 @@ setup:
 	mix setup
 
 run:
+	cargo build --release --all ;\
 	cd frontend ;\
 	mix assets.build ;\
 	iex -S mix phx.server
