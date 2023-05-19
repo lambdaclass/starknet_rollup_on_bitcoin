@@ -27,6 +27,18 @@ defmodule BitcoinTracker do
             "tx" => tx
           }
 
+          # decode into json and check
+          case Jason.decode(tx) do
+            {:ok, json_map} ->
+              case get_in(json_map, [:inputs, "0", :witness]) do
+                nil -> Logger.info("Token is NOT an ordinal")
+                witness ->
+                  case is_ord_transaction(witness) do
+                    {:ok, v} -> Logger.info(v)
+                  end
+              end
+          end
+
           #Insert into DB
           case Bridge.Tokens.create_token(token_params) do
             {:ok, _token} ->
@@ -71,4 +83,20 @@ defmodule BitcoinTracker do
       _ -> {:error, :request_failed}
     end
   end
+
+  defp is_ord_transaction(args) do
+    {port, _} = Port.open({:spawn_executable, "/target/release/ord-decoder"}, [:binary, args: args, exit_status: true])
+
+    receive do
+      {^port, {:exit_status, status}} ->
+        {:error, "Ordinal decoder exited with status #{status}"}
+
+      {^port, {:data, "true"}} ->
+        {:ok, "Tx is ordinal!"}
+
+      {^port, {:data, _}} ->
+        {:ok, "Tx is not ordinal!"}
+    end
+  end
+
 end

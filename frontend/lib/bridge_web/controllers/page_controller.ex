@@ -20,21 +20,4 @@ defmodule BridgeWeb.PageController do
 
     send_resp(conn, 200, "Success")
   end
-
-
-  defp call_ord_decoder(args) do
-    {port, _} = Port.open({:spawn_executable, "/target/debug/ord-decoder"}, [:binary, args: args, exit_status: true])
-
-    receive do
-      {^port, {:exit_status, 0}} ->
-        :ok
-
-      {^port, {:exit_status, status}} ->
-        {:error, "Ordinal decoder exited with status #{status}"}
-
-      {^port, {:data, data}} ->
-        IO.puts("Ordinal decoder was succesful and returned: #{data}")
-    end
-  end
-
 end
