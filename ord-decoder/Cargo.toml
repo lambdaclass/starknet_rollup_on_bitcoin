@@ -9,3 +9,4 @@ edition = "2021"
 ord = {git = "https://github.com/casey/ord", commit = "52c4d57ddf515ca828e97694121e67dd263b226e"}
 bitcoin = { version = "0.29.1", features = ["rand"] }
 serde_json = "*"
+hex = "*"
