@@ -175,7 +175,6 @@ fn main() {
     }
 }
 
-
 #[test]
 /// Taken from https://www.blockchain.com/explorer/transactions/btc/6e995548e5be3c6f215f9301ae0d53691100b23ddaa4e5b12076503d5b1646ca
 fn test_tx_decode() {
