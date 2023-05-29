@@ -65,6 +65,9 @@ rollkit_bitcoin:
 bitcoin:
 	./bitcoin/start-daemon.sh &
 	./bitcoin/run.sh 
+
+bitcoin-watcher:
+	cargo run --release --bin watcher
 	
 
 ##
