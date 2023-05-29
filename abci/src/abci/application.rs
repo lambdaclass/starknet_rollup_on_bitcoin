@@ -1,11 +1,12 @@
 use std::{
     sync::{Arc, Mutex},
-    time::Instant,
+    time::Instant, path::PathBuf,
 };
 
 use lib::{Transaction, TransactionType};
 use once_cell::sync::Lazy;
 use sha2::{Digest, Sha256};
+use starknet_rs::{business_logic::{fact_state::in_memory_state_reader::InMemoryStateReader, state::{cached_state::CachedState, state_api::State}}, services::api::contract_classes::deprecated_contract_class::ContractClass, utils::felt_to_hash, core::contract_address::starknet_contract_address::compute_deprecated_class_hash};
 use tendermint_abci::Application;
 use tendermint_proto::abci;
 
@@ -18,7 +19,7 @@ use tracing::{debug, info};
 #[derive(Debug, Clone)]
 pub struct StarknetApp {
     hasher: Arc<Mutex<Sha256>>,
-    // starknet_state: StarknetState,
+    starknet_state: CachedState<InMemoryStateReader>,
 }
 
 // because we don't get a `&mut self` in the ABCI API, we opt to have a mod-level variable
@@ -33,6 +34,22 @@ impl Application for StarknetApp {
     fn init_chain(&self, _request: abci::RequestInitChain) -> abci::ResponseInitChain {
         info!("Loading genesis");
 
+        let state_reader = InMemoryStateReader::default();
+        let mut state = CachedState::new(state_reader, None, None);
+    
+        state.set_contract_classes(Default::default()).unwrap();
+    
+        let contract_class = ContractClass::try_from(PathBuf::from(
+            "amm.json",
+        ))
+        .unwrap();
+    
+        let class_hash = felt_to_hash(&compute_deprecated_class_hash(&contract_class).unwrap());
+    
+        state
+            .set_contract_class(&class_hash, &contract_class)
+            .unwrap();
+    
         Default::default()
     }
 

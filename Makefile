@@ -124,6 +124,7 @@ clippy:
 # Frontend config:
 
 setup:
+	starknet-compile 
 	cd frontend ;\
 	mix deps.get ;\
 	mix deps.compile ;\
