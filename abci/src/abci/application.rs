@@ -1,10 +1,6 @@
-use std::{
-    sync::{Arc, Mutex},
-    time::Instant,
-};
+use std::sync::{Arc, Mutex};
 
 use lib::{Transaction, TransactionType};
-use once_cell::sync::Lazy;
 use sha2::{Digest, Sha256};
 use tendermint_abci::Application;
 use tendermint_proto::abci;
@@ -20,12 +16,6 @@ pub struct StarknetApp {
     hasher: Arc<Mutex<Sha256>>,
     // starknet_state: StarknetState,
 }
-
-// because we don't get a `&mut self` in the ABCI API, we opt to have a mod-level variable
-// and because beginblock, endblock and deliver_tx all happen in the same thread, this is safe to do
-// an alternative would be Arc<Mutex<>>, but we want to avoid extra-overhead of locks for the benchmark's sake
-static mut TRANSACTIONS: usize = 0;
-static mut TIMER: Lazy<Instant> = Lazy::new(Instant::now);
 
 impl Application for StarknetApp {
     /// This hook is called once upon genesis. It's used to load a default set of records which
@@ -78,18 +68,9 @@ impl Application for StarknetApp {
         let tx: Transaction = bincode::deserialize(&request.tx).unwrap();
 
         match tx.transaction_type {
-            TransactionType::FunctionExecution {
-                function,
-                program_name,
-            } => {
-                info!(
-                    "Received execution transaction. Function: {}, program {}",
-                    function, program_name
-                );
+            TransactionType::Mint { .. } => {
+                //todo!()
             }
-            TransactionType::Declare => todo!(),
-            TransactionType::Deploy => todo!(),
-            TransactionType::Invoke => todo!(),
         }
 
         abci::ResponseCheckTx {
@@ -102,17 +83,6 @@ impl Application for StarknetApp {
     /// credits when the block is committed.
     fn begin_block(&self, _request: abci::RequestBeginBlock) -> abci::ResponseBeginBlock {
         // because begin_block, [deliver_tx] and end_block/commit are on the same thread, this is safe to do (see declaration of statics)
-        unsafe {
-            info!(
-                "{} ms passed between begin_block() calls. {} transactions, {} tps",
-                (*TIMER).elapsed().as_millis(),
-                TRANSACTIONS,
-                (TRANSACTIONS * 1000) as f32 / ((*TIMER).elapsed().as_millis() as f32)
-            );
-            TRANSACTIONS = 0;
-
-            *TIMER = Instant::now();
-        }
 
         Default::default()
     }
@@ -126,70 +96,8 @@ impl Application for StarknetApp {
         // Validation consists of getting the hash and checking whether it is equal
         // to the tx id. The hash executes the program and hashes the trace.
 
-        let tx_hash = tx
-            .transaction_type
-            .compute_and_hash()
-            .map(|x| x == tx.transaction_hash);
-
-        // because begin_block, [deliver_tx] and end_block/commit are on the same thread, this is safe to do (see declaration of statics)
-        unsafe {
-            TRANSACTIONS += 1;
-        }
-
-        match tx_hash {
-            Ok(true) => {
-                let _ = self
-                    .hasher
-                    .lock()
-                    .map(|mut hash| hash.update(tx.transaction_hash.clone()));
-
-                // prepare this transaction to be queried by app.tx_id
-                let index_event = abci::Event {
-                    r#type: "app".to_string(),
-                    attributes: vec![abci::EventAttribute {
-                        key: "tx_id".into(),
-                        value: tx.transaction_hash.clone().into(),
-                        index: true,
-                    }],
-                };
-                let mut events = vec![index_event];
-
-                match tx.transaction_type {
-                    TransactionType::FunctionExecution {
-                        function,
-                        program_name: _,
-                    } => {
-                        let function_event = abci::Event {
-                            r#type: "function".to_string(),
-                            attributes: vec![abci::EventAttribute {
-                                key: "function".into(),
-                                value: function.into(),
-                                index: true,
-                            }],
-                        };
-                        events.push(function_event);
-                    }
-                    TransactionType::Declare => todo!(),
-                    TransactionType::Deploy => todo!(),
-                    TransactionType::Invoke => todo!(),
-                }
-
-                abci::ResponseDeliverTx {
-                    events,
-                    data: tx.transaction_hash.into(),
-                    ..Default::default()
-                }
-            }
-            Ok(false) => abci::ResponseDeliverTx {
-                code: 1,
-                log: "Error delivering transaction. Integrity check failed.".to_string(),
-                info: "Error delivering transaction. Integrity check failed.".to_string(),
-                ..Default::default()
-            },
-            Err(e) => abci::ResponseDeliverTx {
-                code: 1,
-                log: format!("Error delivering transaction: {e}"),
-                info: format!("Error delivering transaction: {e}"),
+        match tx.transaction_type {
+            TransactionType::Mint { .. } => abci::ResponseDeliverTx {
                 ..Default::default()
             },
         }
@@ -199,15 +107,6 @@ impl Application for StarknetApp {
     /// For details about validator set update semantics see:
     /// https://github.com/tendermint/tendermint/blob/v0.34.x/spec/abci/apps.md#endblock
     fn end_block(&self, _request: abci::RequestEndBlock) -> abci::ResponseEndBlock {
-        // because begin_block, [deliver_tx] and end_block/commit are on the same thread, this is safe to do (see declaration of statics)
-        unsafe {
-            info!(
-                "Committing block with {} transactions in {} ms. TPS: {}",
-                TRANSACTIONS,
-                (*TIMER).elapsed().as_millis(),
-                (TRANSACTIONS * 1000) as f32 / ((*TIMER).elapsed().as_millis() as f32)
-            );
-        }
         abci::ResponseEndBlock {
             ..Default::default()
         }
