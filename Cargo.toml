@@ -1,2 +1,2 @@
 [workspace]
-members = ["abci"]
+members = ["abci", "ord-decoder"]
