@@ -1,6 +1,4 @@
-use std::{
-    sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 
 use lib::{Transaction, TransactionType};
 use sha2::{Digest, Sha256};
@@ -72,7 +70,7 @@ impl Application for StarknetApp {
         match tx.transaction_type {
             TransactionType::Mint { .. } => {
                 //todo!()
-            },
+            }
         }
 
         abci::ResponseCheckTx {
@@ -85,7 +83,7 @@ impl Application for StarknetApp {
     /// credits when the block is committed.
     fn begin_block(&self, _request: abci::RequestBeginBlock) -> abci::ResponseBeginBlock {
         // because begin_block, [deliver_tx] and end_block/commit are on the same thread, this is safe to do (see declaration of statics)
-        
+
         Default::default()
     }
 
@@ -99,11 +97,9 @@ impl Application for StarknetApp {
         // to the tx id. The hash executes the program and hashes the trace.
 
         match tx.transaction_type {
-            TransactionType::Mint { .. } => {
-                abci::ResponseDeliverTx {
-                    ..Default::default()
-                }
-            }
+            TransactionType::Mint { .. } => abci::ResponseDeliverTx {
+                ..Default::default()
+            },
         }
     }
 

@@ -1,6 +1,6 @@
 // TODO: This might have to be its own crate
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]

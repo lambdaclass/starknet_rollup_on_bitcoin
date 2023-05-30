@@ -4,17 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-path = "src/cli/main.rs"
-doctest = false
-name =  "cli"
-
-[[bin]]
 path = "src/abci/main.rs"
 name =  "abci"
-
-[[bin]]
-path = "src/bench/main.rs"
-name =  "bench"
 
 [lib]
 path = "src/lib/mod.rs"

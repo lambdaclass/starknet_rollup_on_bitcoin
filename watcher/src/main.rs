@@ -1,9 +1,7 @@
 use lib::{Transaction, TransactionType};
-use reqwest;
-use serde_json;
+
 use std::collections::HashSet;
 use std::time::Duration;
-use tokio;
 
 mod abci_client;
 
@@ -36,10 +34,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         amount: 100,
                         token_tick: "ordi".to_string(),
                     });
-                    
+
                     let result = abci_client::broadcast(tx, LOCAL_SEQUENCER_URL).await;
 
-                    if let Ok(_) = result {
+                    if result.is_ok() {
                         println!(
                             "Minted succesfully hash {} to Starknet address {}",
                             hash, &starknet_address
