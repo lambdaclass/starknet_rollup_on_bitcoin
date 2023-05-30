@@ -6,6 +6,14 @@ use std::{
 use lib::{Transaction, TransactionType};
 use once_cell::sync::Lazy;
 use sha2::{Digest, Sha256};
+use starknet_rs::business_logic::state::state_api::State;
+use starknet_rs::business_logic::{
+    fact_state::in_memory_state_reader::InMemoryStateReader, state::cached_state::CachedState,
+};
+use starknet_rs::core::contract_address::starknet_contract_address::compute_deprecated_class_hash;
+use starknet_rs::services::api::contract_classes::deprecated_contract_class::ContractClass;
+use starknet_rs::utils::felt_to_hash;
+use std::path::PathBuf;
 use tendermint_abci::Application;
 use tendermint_proto::abci;
 
@@ -18,7 +26,7 @@ use tracing::{debug, info};
 #[derive(Debug, Clone)]
 pub struct StarknetApp {
     hasher: Arc<Mutex<Sha256>>,
-    // starknet_state: StarknetState,
+    state: CachedState<InMemoryStateReader>,
 }
 
 // because we don't get a `&mut self` in the ABCI API, we opt to have a mod-level variable
@@ -32,23 +40,6 @@ impl Application for StarknetApp {
     /// make the initial distribution of credits in the system.
     fn init_chain(&self, _request: abci::RequestInitChain) -> abci::ResponseInitChain {
         info!("Loading genesis");
-        let state_reader = InMemoryStateReader::default();
-        let mut state = CachedState::new(state_reader, None, None);
-
-        state.set_contract_classes(Default::default()).unwrap();
-
-        let amm_contract_class =
-            ContractClass::try_from(PathBuf::from("abci/starknet_programs/amm.json")).unwrap();
-        let erc20_contract_class =
-            ContractClass::try_from(PathBuf::from("abci/starknet_programs/erc20.json")).unwrap();
-
-        let amm_class_hash = felt_to_hash(&compute_deprecated_class_hash(&contract_class).unwrap());
-        let erc20_class_hash =
-            felt_to_hash(&compute_deprecated_class_hash(&contract_class).unwrap());
-
-        state
-            .set_contract_class(&class_hash, &contract_class)
-            .unwrap();
 
         Default::default()
     }
@@ -268,9 +259,31 @@ impl Application for StarknetApp {
 impl StarknetApp {
     /// Constructor.
     pub fn new() -> Self {
+        let state_reader = InMemoryStateReader::default();
+        let mut state = CachedState::new(state_reader, None, None);
+
+        state.set_contract_classes(Default::default()).unwrap();
+
+        let amm_contract_class =
+            ContractClass::try_from(PathBuf::from("abci/starknet_programs/amm.json")).unwrap();
+        let erc20_contract_class =
+            ContractClass::try_from(PathBuf::from("abci/starknet_programs/erc20.json")).unwrap();
+
+        let amm_class_hash =
+            felt_to_hash(&compute_deprecated_class_hash(&amm_contract_class).unwrap());
+        let erc20_class_hash =
+            felt_to_hash(&compute_deprecated_class_hash(&erc20_contract_class).unwrap());
+
+        state
+            .set_contract_class(&amm_class_hash, &amm_contract_class)
+            .unwrap();
+        state
+            .set_contract_class(&erc20_class_hash, &erc20_contract_class)
+            .unwrap();
+
         let new_state = Self {
             hasher: Arc::new(Mutex::new(Sha256::new())),
-            //starknet_state: StarknetState::new(None),
+            state: state,
         };
         let _height_file = HeightFile::read_or_create();
 
