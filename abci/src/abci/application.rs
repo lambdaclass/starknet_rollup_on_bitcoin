@@ -32,6 +32,23 @@ impl Application for StarknetApp {
     /// make the initial distribution of credits in the system.
     fn init_chain(&self, _request: abci::RequestInitChain) -> abci::ResponseInitChain {
         info!("Loading genesis");
+        let state_reader = InMemoryStateReader::default();
+        let mut state = CachedState::new(state_reader, None, None);
+
+        state.set_contract_classes(Default::default()).unwrap();
+
+        let amm_contract_class =
+            ContractClass::try_from(PathBuf::from("abci/starknet_programs/amm.json")).unwrap();
+        let erc20_contract_class =
+            ContractClass::try_from(PathBuf::from("abci/starknet_programs/erc20.json")).unwrap();
+
+        let amm_class_hash = felt_to_hash(&compute_deprecated_class_hash(&contract_class).unwrap());
+        let erc20_class_hash =
+            felt_to_hash(&compute_deprecated_class_hash(&contract_class).unwrap());
+
+        state
+            .set_contract_class(&class_hash, &contract_class)
+            .unwrap();
 
         Default::default()
     }
