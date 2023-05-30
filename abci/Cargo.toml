@@ -2,7 +2,6 @@
 name = "starknet-sequencer"
 version = "0.1.0"
 edition = "2021"
-default-run = "cli"
 
 [[bin]]
 path = "src/cli/main.rs"
