@@ -131,6 +131,6 @@ localnet_reset:
 .PHONY: localnet_reset
 
 clippy:
-	cargo clippy --all-targets --all-features -- -D warning
+	cargo clippy --all-targets --all-features -- -D warnings
 .PHONY: clippy
 
