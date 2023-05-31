@@ -65,6 +65,9 @@ rollkit_bitcoin:
 bitcoin:
 	./bitcoin/start-daemon.sh &
 	./bitcoin/run.sh 
+
+bitcoin-watcher:
+	cargo run --release --bin watcher
 	
 
 ##
@@ -117,6 +120,6 @@ localnet_reset:
 .PHONY: localnet_reset
 
 clippy:
-	cargo clippy --all-targets --all-features -- -D warning
+	cargo clippy --all-targets --all-features -- -D warnings
 .PHONY: clippy
 
