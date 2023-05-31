@@ -284,7 +284,7 @@ impl StarknetApp {
 
         let new_state = Self {
             hasher: Arc::new(Mutex::new(Sha256::new())),
-            state: state,
+            state,
         };
         let _height_file = HeightFile::read_or_create();
 
