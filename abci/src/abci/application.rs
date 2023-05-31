@@ -26,6 +26,7 @@ use tracing::{debug, info};
 #[derive(Debug, Clone)]
 pub struct StarknetApp {
     hasher: Arc<Mutex<Sha256>>,
+    #[allow(dead_code)]
     state: CachedState<InMemoryStateReader>,
 }
 
