@@ -19,3 +19,5 @@ Cargo.lock
 .DS_Store
 
 abci.height
+
+*.json
