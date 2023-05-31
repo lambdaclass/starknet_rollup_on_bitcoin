@@ -24,7 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let hash = tx["hash"]
                     .as_str()
                     .expect("Transaction does not contain hash");
-                
+
                 if !burned_transactions.contains(hash) {
                     println!("About to burn ERC-20 on Barknet: {}", hash);
                     // call barknet and get status
