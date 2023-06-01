@@ -20,4 +20,4 @@ Cargo.lock
 
 abci.height
 
-ERC20Mintable.json
+*.json

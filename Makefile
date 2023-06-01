@@ -1,4 +1,4 @@
-.PHONY: reset abci cli consensus_config consensus_install rollkit_celestia bitcoin celestia
+.PHONY: reset abci cli consensus_config consensus_install rollkit_celestia bitcoin celestia compile-starknet
 
 OS := $(shell uname | tr '[:upper:]' '[:lower:]')
 
@@ -66,6 +66,19 @@ bitcoin:
 	./bitcoin/start-daemon.sh &
 	./bitcoin/run.sh 
 
+STARKNET_SOURCES=$(wildcard abci/starknet_programs/*.cairo)
+STARKNET_TARGETS=$(patsubst %.cairo,%.json,$(STARKNET_SOURCES))
+
+abci/starknet_programs/%.json: abci/starknet_programs/%.cairo
+	. ~/cairo_venv/bin/activate && \
+	cd abci/starknet_programs/ && \
+	starknet-compile $(shell grep "^// @compile-flags += .*$$" $< | cut -c 22-) \
+	$*.cairo \
+	--output ./$*.json \
+	|| rm ./$*.json
+
+compile-starknet: $(STARKNET_TARGETS)
+	 
 bitcoin-watcher:
 	cargo run --release --bin watcher
 	
