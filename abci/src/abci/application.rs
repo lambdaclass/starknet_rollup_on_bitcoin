@@ -6,13 +6,19 @@ use std::{
 use lib::{Transaction, TransactionType};
 use once_cell::sync::Lazy;
 use sha2::{Digest, Sha256};
-use starknet_rs::business_logic::state::state_api::State;
 use starknet_rs::business_logic::{
     fact_state::in_memory_state_reader::InMemoryStateReader, state::cached_state::CachedState,
 };
 use starknet_rs::core::contract_address::starknet_contract_address::compute_deprecated_class_hash;
 use starknet_rs::services::api::contract_classes::deprecated_contract_class::ContractClass;
 use starknet_rs::utils::felt_to_hash;
+use starknet_rs::{
+    business_logic::{
+        state::state_api::State, transaction::objects::internal_deploy::InternalDeploy,
+    },
+    definitions::general_config::StarknetGeneralConfig,
+    utils::Address,
+};
 use std::path::PathBuf;
 use tendermint_abci::Application;
 use tendermint_proto::abci;
@@ -282,10 +288,40 @@ impl StarknetApp {
             .set_contract_class(&erc20_class_hash, &erc20_contract_class)
             .unwrap();
 
+        let internal_deploy_amm = InternalDeploy::new(
+            Address(1.into()),
+            amm_contract_class.clone(),
+            vec![],
+            0.into(),
+            0,
+            None,
+        )
+        .unwrap();
+
+        let internal_deploy_erc20 = InternalDeploy::new(
+            Address(1.into()),
+            erc20_contract_class.clone(),
+            vec![1.into(), 1.into(), 1.into(), 100.into(), 1.into(), 1.into()],
+            0.into(),
+            0,
+            None,
+        )
+        .unwrap();
+
+        let general_config = StarknetGeneralConfig::default();
+
+        let _tx_execution_amm = internal_deploy_amm
+            .apply(&mut state, &general_config)
+            .unwrap();
+        let _tx_execution_erc20 = internal_deploy_erc20
+            .apply(&mut state, &general_config)
+            .unwrap();
+
         let new_state = Self {
             hasher: Arc::new(Mutex::new(Sha256::new())),
             state,
         };
+
         let _height_file = HeightFile::read_or_create();
 
         //info!(
