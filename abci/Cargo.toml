@@ -2,20 +2,10 @@
 name = "starknet-sequencer"
 version = "0.1.0"
 edition = "2021"
-default-run = "cli"
-
-[[bin]]
-path = "src/cli/main.rs"
-doctest = false
-name =  "cli"
 
 [[bin]]
 path = "src/abci/main.rs"
 name =  "abci"
-
-[[bin]]
-path = "src/bench/main.rs"
-name =  "bench"
 
 [lib]
 path = "src/lib/mod.rs"
@@ -42,6 +32,6 @@ tracing = "0.1"
 tracing-subscriber = {version = "0.3", features = ["env-filter", "fmt", "std"]}
 tokio = { version = "1.15.0", features = ["full"] }
 uuid = { version = "1.2.1", features = ["v4"] }
-starknet-rs = { git = "https://github.com/lambdaclass/starknet_in_rust"}
+starknet-rs = { git = "https://github.com/lambdaclass/starknet_in_rust" }
 # This was copied from starkent_in_rust/Cargo.toml as it seems it is missing an export for it
 felt = { git = "https://github.com/lambdaclass/cairo-rs", package = "cairo-felt", rev = "8dba86dbec935fa04a255e2edf3d5d184950fa22" }

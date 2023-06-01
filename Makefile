@@ -79,6 +79,8 @@ abci/starknet_programs/%.json: abci/starknet_programs/%.cairo
 
 compile-starknet: $(STARKNET_TARGETS)
 	 
+bitcoin-watcher:
+	cargo run --release --bin watcher
 	
 
 ##
