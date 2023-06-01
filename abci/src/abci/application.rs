@@ -173,7 +173,8 @@ impl StarknetApp {
         let amm_contract_class =
             ContractClass::try_from(PathBuf::from("abci/starknet_programs/amm.json")).unwrap();
         let erc20_contract_class =
-            ContractClass::try_from(PathBuf::from("abci/starknet_programs/erc20.json")).unwrap();
+            ContractClass::try_from(PathBuf::from("abci/starknet_programs/erc20_mintable.json"))
+                .unwrap();
 
         let amm_class_hash =
             felt_to_hash(&compute_deprecated_class_hash(&amm_contract_class).unwrap());
@@ -200,7 +201,15 @@ impl StarknetApp {
         let internal_deploy_erc20 = InternalDeploy::new(
             Address(1.into()),
             erc20_contract_class.clone(),
-            vec![1.into(), 1.into(), 1.into(), 100.into(), 1.into(), 1.into()],
+            vec![
+                1.into(),
+                1.into(),
+                1.into(),
+                100.into(),
+                1.into(),
+                1.into(),
+                1.into(),
+            ],
             0.into(),
             0,
             None,
@@ -215,6 +224,7 @@ impl StarknetApp {
         let _tx_execution_erc20 = internal_deploy_erc20
             .apply(&mut state, &general_config)
             .unwrap();
+
 
         let new_state = Self {
             hasher: Arc::new(Mutex::new(Sha256::new())),
