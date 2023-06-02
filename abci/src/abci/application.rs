@@ -1,13 +1,19 @@
 use std::sync::{Arc, Mutex};
 
+use felt::Felt252;
 use lib::{Transaction, TransactionType};
 use sha2::{Digest, Sha256};
+use starknet_rs::business_logic::execution::execution_entry_point::ExecutionEntryPoint;
+use starknet_rs::business_logic::execution::objects::TransactionExecutionContext;
+use starknet_rs::business_logic::fact_state::state::ExecutionResourcesManager;
 use starknet_rs::business_logic::{
     fact_state::in_memory_state_reader::InMemoryStateReader, state::cached_state::CachedState,
 };
 use starknet_rs::core::contract_address::starknet_contract_address::compute_deprecated_class_hash;
-use starknet_rs::services::api::contract_classes::deprecated_contract_class::ContractClass;
-use starknet_rs::utils::felt_to_hash;
+use starknet_rs::services::api::contract_classes::deprecated_contract_class::{
+    ContractClass, EntryPointType,
+};
+use starknet_rs::utils::{calculate_sn_keccak, felt_to_hash};
 use starknet_rs::{
     business_logic::{
         state::state_api::State, transaction::objects::internal_deploy::InternalDeploy,
@@ -28,8 +34,10 @@ use tracing::{debug, info};
 #[derive(Debug, Clone)]
 pub struct StarknetApp {
     hasher: Arc<Mutex<Sha256>>,
-    #[allow(dead_code)]
-    state: CachedState<InMemoryStateReader>,
+    state: Arc<Mutex<CachedState<InMemoryStateReader>>>,
+    general_config: StarknetGeneralConfig,
+    amm_contract_info: (Address, [u8; 32]),
+    erc20_contract_info: (Address, [u8; 32]),
 }
 
 impl Application for StarknetApp {
@@ -84,7 +92,48 @@ impl Application for StarknetApp {
 
         match tx.transaction_type {
             TransactionType::Mint { .. } => {
-                //todo!()
+                let class_hash = self.erc20_contract_info.1.clone();
+
+                // create entry_point_selector for mint. It should be a Felt252
+                let entry_point_selector =
+                    Felt252::from_bytes_be(&calculate_sn_keccak("mint".as_bytes()));
+                let call_data = [Felt252::from(2), Felt252::from(10)].to_vec();
+                let address = Address(1.into());
+                let contract_address = &self.erc20_contract_info.0;
+                let entry_point_type = EntryPointType::External;
+
+                let execution_entry_point = ExecutionEntryPoint::new(
+                    contract_address.clone(),
+                    call_data,
+                    entry_point_selector,
+                    address,
+                    entry_point_type,
+                    None,
+                    Some(class_hash),
+                    0,
+                );
+
+                let tx_execution_context = TransactionExecutionContext::new(
+                    Address(1.into()),
+                    Felt252::from(0),
+                    Vec::new(),
+                    0,
+                    0.into(),
+                    self.general_config.invoke_tx_max_n_steps(),
+                    1,
+                );
+
+                let mut state = self.state.lock().unwrap();
+
+                execution_entry_point
+                    .execute(
+                        &mut *state,
+                        &self.general_config,
+                        &mut ExecutionResourcesManager::default(),
+                        &tx_execution_context,
+                        false,
+                    )
+                    .unwrap();
             }
         }
 
@@ -218,17 +267,29 @@ impl StarknetApp {
 
         let general_config = StarknetGeneralConfig::default();
 
-        let _tx_execution_amm = internal_deploy_amm
+        let tx_execution_amm = internal_deploy_amm
             .apply(&mut state, &general_config)
             .unwrap();
-        let _tx_execution_erc20 = internal_deploy_erc20
+        let tx_execution_erc20 = internal_deploy_erc20
             .apply(&mut state, &general_config)
             .unwrap();
 
+        let amm_contract_info = (
+            tx_execution_amm.call_info.unwrap().contract_address,
+            amm_class_hash,
+        );
+
+        let erc20_contract_info = (
+            tx_execution_erc20.call_info.unwrap().contract_address,
+            erc20_class_hash,
+        );
 
         let new_state = Self {
             hasher: Arc::new(Mutex::new(Sha256::new())),
-            state,
+            state: Arc::new(Mutex::new(state)),
+            amm_contract_info,
+            erc20_contract_info,
+            general_config,
         };
 
         let _height_file = HeightFile::read_or_create();
