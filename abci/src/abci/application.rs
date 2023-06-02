@@ -90,6 +90,7 @@ impl Application for StarknetApp {
     /// This ABCI hook validates an incoming transaction before inserting it in the
     /// mempool and relaying it to other nodes.
     fn check_tx(&self, request: abci::RequestCheckTx) -> abci::ResponseCheckTx {
+        info!("hex code for tx: {}", hex::encode(&request.tx));
         let tx: Transaction = bincode::deserialize(&request.tx).unwrap();
 
         match tx.transaction_type {
@@ -100,7 +101,7 @@ impl Application for StarknetApp {
                 // create entry_point_selector for mint. It should be a Felt252
                 let entry_point_selector =
                     Felt252::from_bytes_be(&calculate_sn_keccak("mint".as_bytes()));
-                let call_data = [Felt252::from(2), Felt252::from(10)].to_vec();
+                let call_data = [Felt252::from(2), Felt252::from(10), Felt252::from(1)].to_vec();
                 let address = Address(1.into());
                 let contract_address = &self.erc20_contract_info.0;
                 let entry_point_type = EntryPointType::External;
@@ -225,7 +226,7 @@ impl StarknetApp {
         let amm_contract_class =
             ContractClass::try_from(PathBuf::from("abci/starknet_programs/amm.json")).unwrap();
         let erc20_contract_class =
-            ContractClass::try_from(PathBuf::from("abci/starknet_programs/erc20_mintable.json"))
+            ContractClass::try_from(PathBuf::from("abci/starknet_programs/ERC20Mintable.json"))
                 .unwrap();
 
         let amm_class_hash =

@@ -3,8 +3,8 @@ use bitcoin::consensus::deserialize;
 use inscription_parser::{Inscription, InscriptionError};
 use lib::{Transaction, TransactionType};
 use serde::{Deserialize, Serialize};
-use tracing::log::info;
 use std::str::FromStr;
+use tracing::log::info;
 
 use std::collections::HashSet;
 use std::time::Duration;
@@ -48,34 +48,39 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let hash = tx["hash"]
                     .as_str()
                     .expect("Transaction does not contain hash");
-                    
-                let tx = Transaction::with_type(TransactionType::Mint {
-                        address: "0x0".to_owned(),
-                        amount: 10u64,
-                        token_tick: "ordi".to_owned(),
-                    });
 
-                info!("Detected ordinal burned. Sending out transaction {:?} to Rollup", tx);
+                let tx = Transaction::with_type(TransactionType::Mint {
+                    address: "0x0".to_owned(),
+                    amount: 10u64,
+                    token_tick: "ordi".to_owned(),
+                });
+                println!(
+                    "Detected ordinal burned. Sending out transaction {:?} to Rollup",
+                    tx
+                );
 
                 let result = abci_client::broadcast(tx, LOCAL_SEQUENCER_URL).await;
+                println!("{:?}", result);
+                tokio::time::sleep(Duration::from_secs(60)).await;
+
                 //if !burned_transactions.contains(hash) {
                 //    println!("About to burn ERC-20 on Barknet: {}", hash);
-//
+                //
                 //    let inscription = match get_ordinal_data(hash).await {
                 //        Err(_) => continue,
                 //        Ok(v) => v,
                 //    };
-//
+                //
                 //    let ord_body = match deserialize_validate_inscription_body(inscription) {
                 //        Err(_) => continue,
                 //        Ok(v) => v,
                 //    };
-//
+                //
                 //    if ord_body.starknet_address.is_none() {
                 //        println!("tx {} does not contain starknet address in metadata", hash);
                 //        continue;
                 //    }
-//
+                //
                 //    // call barknet and get status
                 //    let starknet_address = ord_body.starknet_address.unwrap(); // TODO: Get address and tx data from bitcoin metadata
                 //    let tx = Transaction::with_type(TransactionType::Mint {
@@ -83,9 +88,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 //        amount: u64::from_str(&ord_body.amt)?,
                 //        token_tick: ord_body.tick,
                 //    });
-//
+                //
                 //    let result = abci_client::broadcast(tx, LOCAL_SEQUENCER_URL).await;
-//
+                //
                 //    if result.is_ok() {
                 //        println!(
                 //            "Minted succesfully hash {} to Starknet address {}",
@@ -96,8 +101,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 //}
             }
         }
-
-        tokio::time::sleep(Duration::from_secs(60)).await;
     }
 }
 
@@ -137,7 +140,27 @@ fn deserialize_validate_inscription_body(inscription: Inscription) -> Result<Ord
 
 #[cfg(test)]
 mod tests {
-    use crate::OrdinalBody;
+    use bitcoin::{consensus::deserialize, Witness};
+
+    use crate::{inscription_parser::InscriptionParser, OrdinalBody};
+    #[test]
+    fn decode_witness() {
+        let obj = "020000000001010456cba757b4b97385340e75f51e319c6b860adda55a48ae535d051e346aa8e70100000000fdffffff02a0860100000000002251206755bc2ce3094931af8242efaaba3533f3e578b4e8646faf09d11f9546530d58475c012a010000002251202da4055ad44b5d6f439593ab7c153fce44be2f5ee252d7a775f99312b5424f410140e76ed924c8716d4873670ddb97fd81f97c8d816c90b78c4be86f2680ffe2b39e04a5aecd486ad326902f380953ec7466f1a6d373be94ff0cf1a47f5750bf260666000000";
+
+        let tx_bytes = hex::decode(obj).expect("Invalid hex");
+        let btc_tx: bitcoin::Transaction = deserialize(&tx_bytes).expect("Invalid transaction");
+
+        let inscription = InscriptionParser::parse(
+            &btc_tx
+                .input
+                .first()
+                .expect("Error getting input from tx")
+                .witness,
+        ).unwrap();
+
+        println!("test {:?}", inscription.body);
+        println!("test {:?}", inscription.content_type);
+    }
 
     #[test]
     fn test_inscription_body_parsing() {

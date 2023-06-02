@@ -10,9 +10,9 @@ endif
 
 # By default consensus protocol is tendermint. Can be overriden with cometbft
 # CONSENSUS can also be tendermint for easily installign Tendermint Core
-CONSENSUS=cometbft
-CONSENSUS_VERSION=0.34.27
-CONSENSUS_HOME=~/.cometbft/
+CONSENSUS=tendermint
+CONSENSUS_VERSION=0.34.22
+CONSENSUS_HOME=~/.tendermint/
 
 # Build the client program and put it in bin/aleo
 cli:
@@ -60,7 +60,7 @@ celestia:
 rollkit_bitcoin:
 	(cd rollkit-node-bitcoin;go build)
 	export NAMESPACE_ID=$$(echo $$RANDOM | md5sum | head -c 16; echo;) ;\
-	./rollkit-node-bitcoin/rollkit-node-bitcoin -config "$$HOME/.tendermint/config/config.toml" -rollkit.aggregator true -rollkit.da_layer bitcoin -rollkit.da_config='{"host":"127.0.0.1:18332","user":"rpcuser","pass":"rpcpass","http_post_mode":true,"disable_tls":true}' -rollkit.namespace_id $$NAMESPACE_ID -rollkit.da_start_height 1
+	./rollkit-node-bitcoin/rollkit-node-bitcoin -config "$$HOME/.tendermint/config/config.toml" -rollkit.aggregator true -rollkit.da_layer bitcoin -rollkit.da_config='{"host":"127.0.0.1:8332","user":"rpcuser","pass":"rpcpass","http_post_mode":true,"disable_tls":true}' -rollkit.namespace_id $$NAMESPACE_ID -rollkit.da_start_height 1
 
 bitcoin:
 	./bitcoin/start-daemon.sh &

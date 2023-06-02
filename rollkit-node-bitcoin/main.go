@@ -49,7 +49,7 @@ func init() {
 	flag.Uint64Var(&daStartHeight, "rollkit.da_start_height", 0, "height to start at when querying blocks")
 	flag.BoolVar(&aggregator, "rollkit.aggregator", true, "run node on aggregator mode or not")
 	flag.StringVar(&daLayer, "rollkit.da_layer", "celestia", "data availability layer to use")
-	flag.StringVar(&daConfig, "rollkit.da_config", `{"host":"127.0.0.1:18332","user":"rpcuser","pass":"rpcpass","http_post_mode":true,"disable_tls":true}`, "configuration to use for the data availability layer")
+	flag.StringVar(&daConfig, "rollkit.da_config", `{"host":"127.0.0.1:8332","user":"rpcuser","pass":"rpcpass","http_post_mode":true,"disable_tls":true}`, "configuration to use for the data availability layer")
 }
 
 func main() {
