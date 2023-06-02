@@ -4,7 +4,7 @@ use felt::Felt252;
 use lib::{Transaction, TransactionType};
 use sha2::{Digest, Sha256};
 use starknet_rs::business_logic::execution::execution_entry_point::ExecutionEntryPoint;
-use starknet_rs::business_logic::execution::objects::TransactionExecutionContext;
+use starknet_rs::business_logic::execution::objects::{CallType, TransactionExecutionContext};
 use starknet_rs::business_logic::fact_state::state::ExecutionResourcesManager;
 use starknet_rs::business_logic::{
     fact_state::in_memory_state_reader::InMemoryStateReader, state::cached_state::CachedState,
@@ -21,8 +21,8 @@ use starknet_rs::{
     definitions::general_config::StarknetGeneralConfig,
     utils::Address,
 };
-use tendermint::node::info;
 use std::path::PathBuf;
+use tendermint::node::info;
 use tendermint_abci::Application;
 use tendermint_proto::abci;
 
@@ -111,7 +111,7 @@ impl Application for StarknetApp {
                     entry_point_selector,
                     address,
                     entry_point_type,
-                    None,
+                    Some(CallType::Delegate),
                     Some(class_hash),
                     0,
                 );
