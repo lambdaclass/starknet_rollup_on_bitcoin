@@ -36,6 +36,7 @@ pub struct StarknetApp {
     hasher: Arc<Mutex<Sha256>>,
     state: Arc<Mutex<CachedState<InMemoryStateReader>>>,
     general_config: StarknetGeneralConfig,
+    #[allow(dead_code)]
     amm_contract_info: (Address, [u8; 32]),
     erc20_contract_info: (Address, [u8; 32]),
 }
@@ -92,7 +93,7 @@ impl Application for StarknetApp {
 
         match tx.transaction_type {
             TransactionType::Mint { .. } => {
-                let class_hash = self.erc20_contract_info.1.clone();
+                let class_hash = self.erc20_contract_info.1;
 
                 // create entry_point_selector for mint. It should be a Felt252
                 let entry_point_selector =
