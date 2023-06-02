@@ -21,6 +21,7 @@ use starknet_rs::{
     definitions::general_config::StarknetGeneralConfig,
     utils::Address,
 };
+use tendermint::node::info;
 use std::path::PathBuf;
 use tendermint_abci::Application;
 use tendermint_proto::abci;
@@ -93,6 +94,7 @@ impl Application for StarknetApp {
 
         match tx.transaction_type {
             TransactionType::Mint { .. } => {
+                info!("Received mint transaction {:?}, minting", tx);
                 let class_hash = self.erc20_contract_info.1;
 
                 // create entry_point_selector for mint. It should be a Felt252
@@ -293,12 +295,12 @@ impl StarknetApp {
             general_config,
         };
 
-        let _height_file = HeightFile::read_or_create();
+        let height_file = HeightFile::read_or_create();
 
-        //info!(
-        //    "Starting with Starknet State: {:?}. Height file has value: {}",
-        //    new_state.starknet_state, height_file
-        //);
+        info!(
+            "Starting with Starknet State: {:?}. Height file has value: {}",
+            new_state, height_file
+        );
         new_state
     }
 }

@@ -3,6 +3,7 @@ use bitcoin::consensus::deserialize;
 use inscription_parser::{Inscription, InscriptionError};
 use lib::{Transaction, TransactionType};
 use serde::{Deserialize, Serialize};
+use tracing::log::info;
 use std::str::FromStr;
 
 use std::collections::HashSet;
@@ -47,43 +48,52 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let hash = tx["hash"]
                     .as_str()
                     .expect("Transaction does not contain hash");
-
-                if !burned_transactions.contains(hash) {
-                    println!("About to burn ERC-20 on Barknet: {}", hash);
-
-                    let inscription = match get_ordinal_data(hash).await {
-                        Err(_) => continue,
-                        Ok(v) => v,
-                    };
-
-                    let ord_body = match deserialize_validate_inscription_body(inscription) {
-                        Err(_) => continue,
-                        Ok(v) => v,
-                    };
-
-                    if ord_body.starknet_address.is_none() {
-                        println!("tx {} does not contain starknet address in metadata", hash);
-                        continue;
-                    }
-
-                    // call barknet and get status
-                    let starknet_address = ord_body.starknet_address.unwrap(); // TODO: Get address and tx data from bitcoin metadata
-                    let tx = Transaction::with_type(TransactionType::Mint {
-                        address: starknet_address.clone(),
-                        amount: u64::from_str(&ord_body.amt)?,
-                        token_tick: ord_body.tick,
+                    
+                let tx = Transaction::with_type(TransactionType::Mint {
+                        address: "0x0".to_owned(),
+                        amount: 10u64,
+                        token_tick: "ordi".to_owned(),
                     });
 
-                    let result = abci_client::broadcast(tx, LOCAL_SEQUENCER_URL).await;
+                info!("Detected ordinal burned. Sending out transaction {:?} to Rollup", tx);
 
-                    if result.is_ok() {
-                        println!(
-                            "Minted succesfully hash {} to Starknet address {}",
-                            hash, &starknet_address
-                        );
-                        burned_transactions.insert(hash.to_string());
-                    }
-                }
+                let result = abci_client::broadcast(tx, LOCAL_SEQUENCER_URL).await;
+                //if !burned_transactions.contains(hash) {
+                //    println!("About to burn ERC-20 on Barknet: {}", hash);
+//
+                //    let inscription = match get_ordinal_data(hash).await {
+                //        Err(_) => continue,
+                //        Ok(v) => v,
+                //    };
+//
+                //    let ord_body = match deserialize_validate_inscription_body(inscription) {
+                //        Err(_) => continue,
+                //        Ok(v) => v,
+                //    };
+//
+                //    if ord_body.starknet_address.is_none() {
+                //        println!("tx {} does not contain starknet address in metadata", hash);
+                //        continue;
+                //    }
+//
+                //    // call barknet and get status
+                //    let starknet_address = ord_body.starknet_address.unwrap(); // TODO: Get address and tx data from bitcoin metadata
+                //    let tx = Transaction::with_type(TransactionType::Mint {
+                //        address: starknet_address.clone(),
+                //        amount: u64::from_str(&ord_body.amt)?,
+                //        token_tick: ord_body.tick,
+                //    });
+//
+                //    let result = abci_client::broadcast(tx, LOCAL_SEQUENCER_URL).await;
+//
+                //    if result.is_ok() {
+                //        println!(
+                //            "Minted succesfully hash {} to Starknet address {}",
+                //            hash, &starknet_address
+                //        );
+                //        burned_transactions.insert(hash.to_string());
+                //    }
+                //}
             }
         }
 

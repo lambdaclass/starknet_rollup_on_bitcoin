@@ -70,7 +70,6 @@ STARKNET_SOURCES=$(wildcard abci/starknet_programs/*.cairo)
 STARKNET_TARGETS=$(patsubst %.cairo,%.json,$(STARKNET_SOURCES))
 
 abci/starknet_programs/%.json: abci/starknet_programs/%.cairo
-	. ~/cairo_venv/bin/activate && \
 	cd abci/starknet_programs/ && \
 	starknet-compile $(shell grep "^// @compile-flags += .*$$" $< | cut -c 22-) \
 	$*.cairo \
