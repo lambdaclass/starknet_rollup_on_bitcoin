@@ -1,7 +1,7 @@
-# Barknet
+# Barknet PoC
 
 ## Overview
-Barknet is a soverign rollup based on Rollkit and Starknet in Rust (Cairo VM) for the application layer over Bitcoin as the Data availability layer, allowing BRC-20 tokens to be used as Starknet tokens via a burn/bridge process.
+Barknet is a PoC soverign rollup based on Rollkit and Starknet in Rust (Cairo VM) for the application layer over Bitcoin as the Data availability layer, allowing BRC-20 tokens to be used as Starknet tokens via a burn/bridge process.
 
 ### Design
 
@@ -9,7 +9,10 @@ The design is based on watching specific burn transactions on Bitcoin, and decod
 
 ## How to run
 
-Note: This requires `bitcoin-cli` and `bitcoind` to be installed. See [this guide for running Rollkit with Bitcoin](https://rollkit.dev/docs/tutorials/bitcoin/) for more information.
+Requirements:
+
+- `bitcoin-cli` and `bitcoind` have to be installed. See [this guide for running Rollkit with Bitcoin](https://rollkit.dev/docs/tutorials/bitcoin/) for more information.
+- `starknet-compile` needs to be available in order to compile both Cairo contracts (`erc20_mintable.cairo` and `amm.cairo`). There is a make target for compiling the contracts: `make compile-starknet`
 
 ### DA Layer
 
