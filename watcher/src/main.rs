@@ -4,6 +4,8 @@ use inscription_parser::{Inscription, InscriptionError};
 use lib::{Transaction, TransactionType};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+use std::thread;
+use std::time::Duration;
 
 use crate::inscription_parser::InscriptionParser;
 
@@ -30,9 +32,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let url = format!("https://blockchain.info/rawaddr/{}", address);
 
     let mut burned_transactions: HashSet<String> = HashSet::new();
-
-    // let ins = get_ordinal_data("6e995548e5be3c6f215f9301ae0d53691100b23ddaa4e5b12076503d5b1646ca").await.unwrap();
-    // println!("{} - {}", String::from_utf8(ins.content_type.unwrap()).unwrap(), String::from_utf8(ins.body.unwrap()).unwrap());
 
     loop {
         let response = reqwest::get(&url).await?.text().await?;
@@ -83,6 +82,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         }
+        thread::sleep(Duration::from_secs(60));
     }
 }
 

@@ -50,7 +50,7 @@ After we have this, we can build and run our Rollkit project configured with Bit
 make rollkit_bitcoin
 ```
 
-At this point you should have a DA layer running alongside the application layer (ABCI) and Rollkit acting as the sequencer for incoming transactions.
+At this point you should have a DA layer running alongside the application layer (ABCI) and Rollkit acting as the sequencer for incoming transactions. You could now run the binary which watches Bitcoin's transactions and decodes the witness into BRC-20 data in order to send mint transactions to the sequencer (`cargo run --bin watcher`). 
 
 ## Limitations and future work
 
