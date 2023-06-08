@@ -3,15 +3,16 @@ use std::sync::{Arc, Mutex};
 use felt::Felt252;
 use lib::{Transaction, TransactionType};
 use sha2::{Digest, Sha256};
+use starknet_contract_class::EntryPointType;
+use starknet_rs::business_logic::execution::{CallType, TransactionExecutionContext};
 use starknet_rs::business_logic::execution::execution_entry_point::ExecutionEntryPoint;
-use starknet_rs::business_logic::execution::objects::{CallType, TransactionExecutionContext};
 use starknet_rs::business_logic::fact_state::state::ExecutionResourcesManager;
 use starknet_rs::business_logic::{
     fact_state::in_memory_state_reader::InMemoryStateReader, state::cached_state::CachedState,
 };
-use starknet_rs::core::contract_address::starknet_contract_address::compute_deprecated_class_hash;
+use starknet_rs::core::contract_address::compute_deprecated_class_hash;
 use starknet_rs::services::api::contract_classes::deprecated_contract_class::{
-    ContractClass, EntryPointType,
+    ContractClass,
 };
 use starknet_rs::utils::{calculate_sn_keccak, felt_to_hash};
 use starknet_rs::{
@@ -21,12 +22,14 @@ use starknet_rs::{
     definitions::general_config::StarknetGeneralConfig,
     utils::Address,
 };
-use std::path::PathBuf;
-use tendermint::node::info;
-use tendermint_abci::Application;
 use tendermint_proto::abci;
+use tokio::runtime::Runtime;
+use std::path::PathBuf;
+use tendermint_abci::Application;
 
 use tracing::{debug, info};
+
+use crate::bitcoin_watcher::BitcoinWatcher;
 
 /// An Tendermint ABCI application that works with a Cairo backend.
 /// This struct implements the ABCI application hooks, forwarding commands through
@@ -40,6 +43,9 @@ pub struct StarknetApp {
     #[allow(dead_code)]
     amm_contract_info: (Address, [u8; 32]),
     erc20_contract_info: (Address, [u8; 32]),
+    #[allow(dead_code)]
+    bitcoin_watcher: BitcoinWatcher,
+    rt: Arc<Mutex<Runtime>>
 }
 
 impl Application for StarknetApp {
@@ -65,7 +71,7 @@ impl Application for StarknetApp {
             last_block_height: HeightFile::read_or_create(),
 
             // using a fixed hash, see the commit() hook
-            last_block_app_hash: vec![],
+            last_block_app_hash: vec![].into(),
         }
     }
 
@@ -98,7 +104,7 @@ impl Application for StarknetApp {
                 info!("Received mint transaction {:?}, minting", tx);
                 let class_hash = self.erc20_contract_info.1;
 
-                // create entry_point_selector for mint. It should be a Felt252
+                // create entry_point_selector for mint. It should be a Felt
                 let entry_point_selector =
                     Felt252::from_bytes_be(&calculate_sn_keccak("mint".as_bytes()));
                 let call_data = [Felt252::from(2), Felt252::from(10), Felt252::from(1)].to_vec();
@@ -115,7 +121,7 @@ impl Application for StarknetApp {
                     Some(CallType::Delegate),
                     Some(class_hash),
                     0,
-                );
+                );  
 
                 let tx_execution_context = TransactionExecutionContext::new(
                     Address(1.into()),
@@ -201,18 +207,23 @@ impl Application for StarknetApp {
 
         info!("Committing height {}", height,);
 
+        if height % 2 == 0 {
+            self.bitcoin_watcher.check_and_mint(height.try_into().unwrap()).unwrap();
+        }
+
         match app_hash {
             Ok(hash) => abci::ResponseCommit {
-                data: hash,
+                data: hash.into(),
                 retain_height: 0,
             },
             // error should be handled here
             _ => abci::ResponseCommit {
-                data: vec![],
+                data: vec![].into(),
                 retain_height: 0,
             },
         }
     }
+
 }
 
 impl StarknetApp {
@@ -294,6 +305,8 @@ impl StarknetApp {
             amm_contract_info,
             erc20_contract_info,
             general_config,
+            bitcoin_watcher: BitcoinWatcher::new(),
+            rt: Arc::new(Mutex::new(Runtime::new().unwrap()))
         };
 
         let height_file = HeightFile::read_or_create();
@@ -302,6 +315,7 @@ impl StarknetApp {
             "Starting with Starknet State: {:?}. Height file has value: {}",
             new_state, height_file
         );
+
         new_state
     }
 }

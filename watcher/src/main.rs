@@ -3,9 +3,6 @@ use bitcoin::consensus::deserialize;
 use inscription_parser::{Inscription, InscriptionError};
 use lib::{Transaction, TransactionType};
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
-use tracing::log::info;
-
 use std::collections::HashSet;
 use std::time::Duration;
 
@@ -61,7 +58,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                 let result = abci_client::broadcast(tx, LOCAL_SEQUENCER_URL).await;
                 println!("{:?}", result);
-                tokio::time::sleep(Duration::from_secs(60)).await;
+                tokio::time::sleep(Duration::from_secs(7    )).await;
 
                 //if !burned_transactions.contains(hash) {
                 //    println!("About to burn ERC-20 on Barknet: {}", hash);

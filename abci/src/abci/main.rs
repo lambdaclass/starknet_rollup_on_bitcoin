@@ -4,6 +4,7 @@ use tendermint_abci::ServerBuilder;
 use tracing_subscriber::{filter::LevelFilter, util::SubscriberInitExt};
 
 mod application;
+mod bitcoin_watcher;
 
 #[derive(Debug, Parser)]
 #[clap(author, version, about)]
