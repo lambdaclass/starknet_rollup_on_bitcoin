@@ -4,7 +4,6 @@ use inscription_parser::{Inscription, InscriptionError};
 use lib::{Transaction, TransactionType};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-use std::time::Duration;
 
 use crate::inscription_parser::InscriptionParser;
 
@@ -33,7 +32,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut burned_transactions: HashSet<String> = HashSet::new();
 
     // let ins = get_ordinal_data("6e995548e5be3c6f215f9301ae0d53691100b23ddaa4e5b12076503d5b1646ca").await.unwrap();
-
     // println!("{} - {}", String::from_utf8(ins.content_type.unwrap()).unwrap(), String::from_utf8(ins.body.unwrap()).unwrap());
 
     loop {
@@ -46,56 +44,43 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .as_str()
                     .expect("Transaction does not contain hash");
 
-                let tx = Transaction::with_type(TransactionType::Mint {
-                    address: "0x0".to_owned(),
-                    amount: 10u64,
-                    token_tick: "ordi".to_owned(),
-                });
-                println!(
-                    "Detected ordinal burned. Sending out transaction {:?} to Rollup",
-                    tx
-                );
 
-                let result = abci_client::broadcast(tx, LOCAL_SEQUENCER_URL).await;
-                println!("{:?}", result);
-                tokio::time::sleep(Duration::from_secs(7    )).await;
-
-                //if !burned_transactions.contains(hash) {
-                //    println!("About to burn ERC-20 on Barknet: {}", hash);
-                //
-                //    let inscription = match get_ordinal_data(hash).await {
-                //        Err(_) => continue,
-                //        Ok(v) => v,
-                //    };
-                //
-                //    let ord_body = match deserialize_validate_inscription_body(inscription) {
-                //        Err(_) => continue,
-                //        Ok(v) => v,
-                //    };
-                //
-                //    if ord_body.starknet_address.is_none() {
-                //        println!("tx {} does not contain starknet address in metadata", hash);
-                //        continue;
-                //    }
-                //
-                //    // call barknet and get status
-                //    let starknet_address = ord_body.starknet_address.unwrap(); // TODO: Get address and tx data from bitcoin metadata
-                //    let tx = Transaction::with_type(TransactionType::Mint {
-                //        address: starknet_address.clone(),
-                //        amount: u64::from_str(&ord_body.amt)?,
-                //        token_tick: ord_body.tick,
-                //    });
-                //
-                //    let result = abci_client::broadcast(tx, LOCAL_SEQUENCER_URL).await;
-                //
-                //    if result.is_ok() {
-                //        println!(
-                //            "Minted succesfully hash {} to Starknet address {}",
-                //            hash, &starknet_address
-                //        );
-                //        burned_transactions.insert(hash.to_string());
-                //    }
-                //}
+                if !burned_transactions.contains(hash) {
+                    println!("About to mint ERC-20 on Barknet for Bitcoin tx_id: {}", hash);
+                
+                    let inscription = match get_ordinal_data(hash).await {
+                        Err(_) => continue,
+                        Ok(v) => v,
+                    };
+                
+                    let ord_body = match deserialize_validate_inscription_body(inscription) {
+                        Err(_) => continue,
+                        Ok(v) => v,
+                    };
+                
+                    if ord_body.starknet_address.is_none() {
+                        println!("tx {} does not contain starknet address in metadata", hash);
+                        continue;
+                    }
+                
+                    // call barknet and get status
+                    let starknet_address = ord_body.starknet_address.unwrap(); // TODO: Get address and tx data from bitcoin metadata
+                    let tx = Transaction::with_type(TransactionType::Mint {
+                        address: starknet_address.clone(),
+                        amount: ord_body.amt.parse()?,
+                        token_tick: ord_body.tick,
+                    });
+                
+                    let result = abci_client::broadcast(tx, LOCAL_SEQUENCER_URL).await;
+                
+                    if result.is_ok() {
+                        println!(
+                            "Minted succesfully hash {} to Starknet address {}",
+                            hash, &starknet_address
+                        );
+                        burned_transactions.insert(hash.to_string());
+                    }
+                }
             }
         }
     }
@@ -137,7 +122,7 @@ fn deserialize_validate_inscription_body(inscription: Inscription) -> Result<Ord
 
 #[cfg(test)]
 mod tests {
-    use bitcoin::{consensus::deserialize, Witness};
+    use bitcoin::{consensus::deserialize};
 
     use crate::{inscription_parser::InscriptionParser, OrdinalBody};
     #[test]
@@ -155,8 +140,8 @@ mod tests {
                 .witness,
         ).unwrap();
 
-        println!("test {:?}", inscription.body);
-        println!("test {:?}", inscription.content_type);
+        println!("inscription body {:?}", inscription.body);
+        println!("inscription content type {:?}", inscription.content_type);
     }
 
     #[test]

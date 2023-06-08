@@ -29,7 +29,6 @@ use tendermint_abci::Application;
 
 use tracing::{debug, info};
 
-use crate::bitcoin_watcher::BitcoinWatcher;
 
 /// An Tendermint ABCI application that works with a Cairo backend.
 /// This struct implements the ABCI application hooks, forwarding commands through
@@ -43,9 +42,6 @@ pub struct StarknetApp {
     #[allow(dead_code)]
     amm_contract_info: (Address, [u8; 32]),
     erc20_contract_info: (Address, [u8; 32]),
-    #[allow(dead_code)]
-    bitcoin_watcher: BitcoinWatcher,
-    rt: Arc<Mutex<Runtime>>
 }
 
 impl Application for StarknetApp {
@@ -207,10 +203,6 @@ impl Application for StarknetApp {
 
         info!("Committing height {}", height,);
 
-        if height % 2 == 0 {
-            self.bitcoin_watcher.check_and_mint(height.try_into().unwrap()).unwrap();
-        }
-
         match app_hash {
             Ok(hash) => abci::ResponseCommit {
                 data: hash.into(),
@@ -305,8 +297,6 @@ impl StarknetApp {
             amm_contract_info,
             erc20_contract_info,
             general_config,
-            bitcoin_watcher: BitcoinWatcher::new(),
-            rt: Arc::new(Mutex::new(Runtime::new().unwrap()))
         };
 
         let height_file = HeightFile::read_or_create();
