@@ -2,7 +2,7 @@
 
 use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
-use tendermint_rpc::{HttpClient, Client};
+use tendermint_rpc::{Client, HttpClient};
 use tracing::debug;
 use uuid::Uuid;
 
@@ -31,7 +31,6 @@ impl Transaction {
         }
     }
 }
-
 
 pub async fn broadcast_async(transaction: Transaction, url: &str) -> Result<()> {
     let client = HttpClient::new(url).unwrap();

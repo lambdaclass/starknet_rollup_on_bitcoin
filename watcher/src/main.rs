@@ -43,25 +43,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .as_str()
                     .expect("Transaction does not contain hash");
 
-
                 if !burned_transactions.contains(hash) {
-                    println!("About to mint ERC-20 on Barknet for Bitcoin tx_id: {}", hash);
-                
+                    println!(
+                        "About to mint ERC-20 on Barknet for Bitcoin tx_id: {}",
+                        hash
+                    );
+
                     let inscription = match get_ordinal_data(hash).await {
                         Err(_) => continue,
                         Ok(v) => v,
                     };
-                
+
                     let ord_body = match deserialize_validate_inscription_body(inscription) {
                         Err(_) => continue,
                         Ok(v) => v,
                     };
-                
+
                     if ord_body.starknet_address.is_none() {
                         println!("tx {} does not contain starknet address in metadata", hash);
                         continue;
                     }
-                
+
                     // call barknet and get status
                     let starknet_address = ord_body.starknet_address.unwrap(); // TODO: Get address and tx data from bitcoin metadata
                     let tx = Transaction::with_type(TransactionType::Mint {
@@ -69,9 +71,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         amount: ord_body.amt.parse()?,
                         token_tick: ord_body.tick,
                     });
-                
+
                     let result = abci_client::broadcast(tx, LOCAL_SEQUENCER_URL).await;
-                
+
                     if result.is_ok() {
                         println!(
                             "Minted succesfully hash {} to Starknet address {}",
@@ -122,7 +124,7 @@ fn deserialize_validate_inscription_body(inscription: Inscription) -> Result<Ord
 
 #[cfg(test)]
 mod tests {
-    use bitcoin::{consensus::deserialize};
+    use bitcoin::consensus::deserialize;
 
     use crate::{inscription_parser::InscriptionParser, OrdinalBody};
     #[test]
@@ -138,7 +140,8 @@ mod tests {
                 .first()
                 .expect("Error getting input from tx")
                 .witness,
-        ).unwrap();
+        )
+        .unwrap();
 
         println!("inscription body {:?}", inscription.body);
         println!("inscription content type {:?}", inscription.content_type);

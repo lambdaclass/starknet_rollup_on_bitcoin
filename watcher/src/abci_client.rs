@@ -17,8 +17,6 @@ pub async fn broadcast(transaction: Transaction, url: &str) -> Result<()> {
     }
 }
 
-
-
 pub async fn _get_transaction(tx_id: &str, url: &str) -> Result<Transaction> {
     let client = HttpClient::new(url)?;
     // todo: this index key might have to be a part of the shared lib so that both the CLI and the ABCI can be in sync

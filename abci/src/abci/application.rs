@@ -23,7 +23,6 @@ use starknet_rs::{
     utils::Address,
 };
 use tendermint_proto::abci;
-use tokio::runtime::Runtime;
 use std::path::PathBuf;
 use tendermint_abci::Application;
 
@@ -67,7 +66,7 @@ impl Application for StarknetApp {
             last_block_height: HeightFile::read_or_create(),
 
             // using a fixed hash, see the commit() hook
-            last_block_app_hash: vec![].into(),
+            last_block_app_hash: vec![],
         }
     }
 
@@ -205,12 +204,12 @@ impl Application for StarknetApp {
 
         match app_hash {
             Ok(hash) => abci::ResponseCommit {
-                data: hash.into(),
+                data: hash,
                 retain_height: 0,
             },
             // error should be handled here
             _ => abci::ResponseCommit {
-                data: vec![].into(),
+                data: vec![],
                 retain_height: 0,
             },
         }
