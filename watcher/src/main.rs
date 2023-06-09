@@ -3,9 +3,8 @@ use bitcoin::consensus::deserialize;
 use inscription_parser::{Inscription, InscriptionError};
 use lib::{Transaction, TransactionType};
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
-
 use std::collections::HashSet;
+use std::thread;
 use std::time::Duration;
 
 use crate::inscription_parser::InscriptionParser;
@@ -34,10 +33,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut burned_transactions: HashSet<String> = HashSet::new();
 
-    // let ins = get_ordinal_data("6e995548e5be3c6f215f9301ae0d53691100b23ddaa4e5b12076503d5b1646ca").await.unwrap();
-
-    // println!("{} - {}", String::from_utf8(ins.content_type.unwrap()).unwrap(), String::from_utf8(ins.body.unwrap()).unwrap());
-
     loop {
         let response = reqwest::get(&url).await?.text().await?;
         let v: serde_json::Value = serde_json::from_str(&response)?;
@@ -49,7 +44,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .expect("Transaction does not contain hash");
 
                 if !burned_transactions.contains(hash) {
-                    println!("About to burn ERC-20 on Barknet: {}", hash);
+                    println!(
+                        "About to mint ERC-20 on Barknet for Bitcoin tx_id: {}",
+                        hash
+                    );
 
                     let inscription = match get_ordinal_data(hash).await {
                         Err(_) => continue,
@@ -70,7 +68,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let starknet_address = ord_body.starknet_address.unwrap(); // TODO: Get address and tx data from bitcoin metadata
                     let tx = Transaction::with_type(TransactionType::Mint {
                         address: starknet_address.clone(),
-                        amount: u64::from_str(&ord_body.amt)?,
+                        amount: ord_body.amt.parse()?,
                         token_tick: ord_body.tick,
                     });
 
@@ -86,8 +84,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         }
-
-        tokio::time::sleep(Duration::from_secs(60)).await;
+        thread::sleep(Duration::from_secs(60));
     }
 }
 
@@ -127,7 +124,28 @@ fn deserialize_validate_inscription_body(inscription: Inscription) -> Result<Ord
 
 #[cfg(test)]
 mod tests {
-    use crate::OrdinalBody;
+    use bitcoin::consensus::deserialize;
+
+    use crate::{inscription_parser::InscriptionParser, OrdinalBody};
+    #[test]
+    fn decode_witness() {
+        let obj = "020000000001010456cba757b4b97385340e75f51e319c6b860adda55a48ae535d051e346aa8e70100000000fdffffff02a0860100000000002251206755bc2ce3094931af8242efaaba3533f3e578b4e8646faf09d11f9546530d58475c012a010000002251202da4055ad44b5d6f439593ab7c153fce44be2f5ee252d7a775f99312b5424f410140e76ed924c8716d4873670ddb97fd81f97c8d816c90b78c4be86f2680ffe2b39e04a5aecd486ad326902f380953ec7466f1a6d373be94ff0cf1a47f5750bf260666000000";
+
+        let tx_bytes = hex::decode(obj).expect("Invalid hex");
+        let btc_tx: bitcoin::Transaction = deserialize(&tx_bytes).expect("Invalid transaction");
+
+        let inscription = InscriptionParser::parse(
+            &btc_tx
+                .input
+                .first()
+                .expect("Error getting input from tx")
+                .witness,
+        )
+        .unwrap();
+
+        println!("inscription body {:?}", inscription.body);
+        println!("inscription content type {:?}", inscription.content_type);
+    }
 
     #[test]
     fn test_inscription_body_parsing() {
