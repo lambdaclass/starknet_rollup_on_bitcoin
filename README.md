@@ -14,9 +14,8 @@ Requirements:
 - `bitcoin-cli` and `bitcoind` have to be installed. See [this guide for running Rollkit with Bitcoin](https://rollkit.dev/docs/tutorials/bitcoin/) for more information.
 - `Python3.9` needs to be installed.
 - `GMP Library` should be available. You can install it on:
-    - Ubuntu ```sudo apt install -y libgmp3-dev```
-    - MacOS ```brew install gmp```
-- `starknet-compile` needs to be available in order to compile both Cairo contracts (`erc20_mintable.cairo` and `amm.cairo`). There is a make target for compiling the contracts: `make compile-starknet`
+  - Ubuntu ```sudo apt install -y libgmp3-dev```
+  - MacOS ```brew install gmp```
 
 ### DA Layer
 
