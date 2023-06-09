@@ -4,16 +4,14 @@ use felt::Felt252;
 use lib::{Transaction, TransactionType};
 use sha2::{Digest, Sha256};
 use starknet_contract_class::EntryPointType;
-use starknet_rs::business_logic::execution::{CallType, TransactionExecutionContext};
 use starknet_rs::business_logic::execution::execution_entry_point::ExecutionEntryPoint;
+use starknet_rs::business_logic::execution::{CallType, TransactionExecutionContext};
 use starknet_rs::business_logic::fact_state::state::ExecutionResourcesManager;
 use starknet_rs::business_logic::{
     fact_state::in_memory_state_reader::InMemoryStateReader, state::cached_state::CachedState,
 };
 use starknet_rs::core::contract_address::compute_deprecated_class_hash;
-use starknet_rs::services::api::contract_classes::deprecated_contract_class::{
-    ContractClass,
-};
+use starknet_rs::services::api::contract_classes::deprecated_contract_class::ContractClass;
 use starknet_rs::utils::{calculate_sn_keccak, felt_to_hash};
 use starknet_rs::{
     business_logic::{
@@ -22,12 +20,11 @@ use starknet_rs::{
     definitions::general_config::StarknetGeneralConfig,
     utils::Address,
 };
-use tendermint_proto::abci;
 use std::path::PathBuf;
 use tendermint_abci::Application;
+use tendermint_proto::abci;
 
 use tracing::{debug, info};
-
 
 /// An Tendermint ABCI application that works with a Cairo backend.
 /// This struct implements the ABCI application hooks, forwarding commands through
@@ -116,7 +113,7 @@ impl Application for StarknetApp {
                     Some(CallType::Delegate),
                     Some(class_hash),
                     0,
-                );  
+                );
 
                 let tx_execution_context = TransactionExecutionContext::new(
                     Address(1.into()),
@@ -214,7 +211,6 @@ impl Application for StarknetApp {
             },
         }
     }
-
 }
 
 impl StarknetApp {
