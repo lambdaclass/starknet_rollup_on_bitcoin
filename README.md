@@ -12,6 +12,10 @@ The design is based on watching specific burn transactions on Bitcoin, and decod
 Requirements:
 
 - `bitcoin-cli` and `bitcoind` have to be installed. See [this guide for running Rollkit with Bitcoin](https://rollkit.dev/docs/tutorials/bitcoin/) for more information.
+- `Python3.9` needs to be installed.
+- `GMP Library` should be available. You can install it on:
+    - Ubuntu ```sudo apt install -y libgmp3-dev```
+    - MacOS ```brew install gmp```
 - `starknet-compile` needs to be available in order to compile both Cairo contracts (`erc20_mintable.cairo` and `amm.cairo`). There is a make target for compiling the contracts: `make compile-starknet`
 
 ### DA Layer
@@ -54,6 +58,16 @@ make rollkit_bitcoin
 ```
 
 At this point you should have a DA layer running alongside the application layer (ABCI) and Rollkit acting as the sequencer for incoming transactions. You could now run the binary which watches Bitcoin's transactions and decodes the witness into BRC-20 data in order to send mint transactions to the sequencer (`cargo run --bin watcher`). 
+
+### Cairo
+
+Barknet only works with `Cairo 0`, this means cairo-lang should be installed. To do so run:
+
+```sh
+make install cairo
+```
+
+After the installation is done, `starknet-compile` will be available in order to compile both Cairo contracts (`erc20_mintable.cairo` and `amm.cairo`). There is a make target for compiling the contracts: `make compile-starknet`
 
 ## Limitations and future work
 

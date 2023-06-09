@@ -78,6 +78,14 @@ abci/starknet_programs/%.json: abci/starknet_programs/%.cairo
 	|| rm ./$*.json
 
 compile-starknet: $(STARKNET_TARGETS)
+
+install cairo:
+	python3.9 -m venv ~/cairo_venv
+	source ~/cairo_venv/bin/activate
+	pip3.9 install ecdsa fastecdsa sympy
+	pip3.9 install cairo-lang
+
+
 	 
 bitcoin-watcher:
 	cargo run --release --bin watcher
