@@ -1,7 +1,7 @@
-# Barknet PoC
+# Starknet Rollup on Bitcoin PoC
 
 ## Overview
-Barknet is a PoC soverign rollup based on Rollkit and Starknet in Rust (Cairo VM) for the application layer over Bitcoin as the Data availability layer, allowing BRC-20 tokens to be used as Starknet tokens via a burn/bridge process.
+Starknet Rollup on Bitcoin is a PoC soverign rollup based on Rollkit and Starknet in Rust (Cairo VM) for the application layer over Bitcoin as the Data availability layer, allowing BRC-20 tokens to be used as Starknet tokens via a burn/bridge process.
 
 ### Design
 
@@ -60,7 +60,7 @@ At this point you should have a DA layer running alongside the application layer
 
 ### Cairo
 
-Barknet only works with `Cairo 0`, this means cairo-lang should be installed. To do so run:
+The rollup only works with `Cairo 0`, this means cairo-lang should be installed. To do so run:
 
 ```sh
 make install cairo
